@@ -128,6 +128,7 @@ def merge_csv(base_path, output_file_name):
 
         # Read and validate each file before merging
         dfs = []
+        columns_set = None
         for file_path in file_paths:
             try:
                 # Read the CSV file
@@ -136,8 +137,10 @@ def merge_csv(base_path, output_file_name):
                 if df.empty:
                     print(f"Warning: File is empty and will be skipped: {file_path}")
                     continue
-                # Ensure the dataframe has consistent columns (optional, based on your use case)
-                if dfs and not df.columns.equals(dfs[0].columns):
+                # Ensure the dataframe has consistent columns (use the columns from the first valid dataframe)
+                if columns_set is None:
+                    columns_set = df.columns
+                if not columns_set.equals(df.columns):
                     print(f"Warning: File has inconsistent columns and will be skipped: {file_path}")
                     continue
                 dfs.append(df)
@@ -149,34 +152,21 @@ def merge_csv(base_path, output_file_name):
             print("No valid data to merge.")
             return
 
-        # Concatenate all dataframes
-        df_concat = pd.concat(dfs, ignore_index=True)
+        # Merge all valid dataframes
+        merged_df = pd.concat(dfs, ignore_index=True)
 
-        # Validate the merged dataframe
-        if df_concat.empty:
-            print("Warning: Merged dataframe is empty. No file will be saved.")
-            return
+        # Save the merged dataframe to a CSV file
+        output_file_path = os.path.join(base_path, output_file_name)
+        merged_df.to_csv(output_file_path, index=False)
+        print(f"Merged file saved as: {output_file_name}")
 
-        # Save the merged dataframe to the output file
-        output_path = os.path.join(base_path, output_file_name)
-        df_concat.to_csv(output_path, index=False)
-        print(f"Merged file saved to: {output_path}")
-
-
-
-        # Delete the small files after successful merging
+        # Optionally, delete the original CSV files after merging
         for file_path in file_paths:
-            try:
-                os.remove(file_path)
-                print(f"Deleted: {file_path}")
-            except Exception as e:
-                print(f"Failed to delete {file_path}: {str(e)}")
-
-        print("File merging and cleanup completed successfully.")
+            os.remove(file_path)
+            print(f"Deleted file: {file_path}")
 
     except Exception as e:
-        print(f"Error during execution: {str(e)}")
-
+        print(f"An error occurred: {str(e)}")
 
 # Loading input.csv and establishing columns to be used
 
