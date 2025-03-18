@@ -114,7 +114,7 @@ async def query_api_with_retry(business_id, api_key, business_name, start_date, 
         end_date = datetime.strptime(end_date, "%Y-%m-%d")
 
     # Create directory for saving files
-    path = f'{business_name}_payments/'
+    path = f'{GDpath}{business_name}_payments/'
     Path(path).mkdir(parents=True, exist_ok=True)
 
     # Generate a list of dates
